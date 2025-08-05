@@ -1,0 +1,28 @@
+#pragma once
+
+#include <SFML/Graphics/CircleShape.hpp>
+#include <map>
+
+#include "../core/State.h"
+
+class GameState : public State {
+ private:
+  sf::CircleShape circle;
+  float circleSpeed;
+  std::map<sf::Keyboard::Scancode, bool> keymapPressed;
+
+ public:
+  static const float CIRCLE_SIZE;
+
+  GameState(Context context);
+
+  void update(const sf::Time& deltaTime) override;
+
+  void render() override;
+
+  void handleInput(const sf::Event& event) override;
+
+  void initializeKeymap();
+
+  void handlePlayerInput(sf::Keyboard::Scancode key, bool pressed);
+};

@@ -1,30 +1,31 @@
-#include <SFML/Graphics.hpp>
-#include <map>
+#pragma once
 
-class Game {
+#include <SFML/Graphics.hpp>
+
+#include "State.h"
+
+class GameEngine {
  private:
   sf::RenderWindow window;
-
-  sf::CircleShape circle;
-  float circleSpeed;
-  std::map<sf::Keyboard::Scancode, bool> keymapPressed;
+  State* currentState;
 
  public:
   static const uint16_t FRAMERATE_LIMIT;
-  static const float CIRCLE_SIZE;
   static const sf::Time PHYSICS_UPDATE_RATE;
 
-  Game();
-  virtual ~Game() = default;
+  GameEngine();
+  virtual ~GameEngine();
 
   void run();
+
+  void changeState(State* newState);
 
  private:
   void processEvents();
 
   /// @brief Physics update of the game
   /// @param deltaTime Time since last update to be constant
-  void update(sf::Time deltaTime);
+  void update(const sf::Time& deltaTime);
 
   void render();
 

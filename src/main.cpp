@@ -1,8 +1,8 @@
-#include "core/Game.h"
+#include "core/GameEngine.h"
 
 int main(void) {
-  Game game;
-  game.run();
+  GameEngine engine;
+  engine.run();
 
   return 0;
 }

@@ -4,9 +4,12 @@
 #include <map>
 
 #include "../core/State.h"
+#include "../core/entities/EntityManager.h"
 
 class GameState : public State {
  private:
+  EntityManager entityManager;
+  Entity* player;
   sf::CircleShape circle;
   float circleSpeed;
   std::map<sf::Keyboard::Scancode, bool> keymapPressed;

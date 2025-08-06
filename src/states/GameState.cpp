@@ -1,39 +1,55 @@
 #include "GameState.h"
 
+#include <iostream>
+
 const float GameState::CIRCLE_SIZE = 50.f;
 
 GameState::GameState(Context context)
-    : State(context), circle(CIRCLE_SIZE), circleSpeed(300.f), keymapPressed() {
+    : State(context),
+      circle(CIRCLE_SIZE),
+      circleSpeed(300.f),
+      keymapPressed(),
+      entityManager() {
   // Middle of the window
-  circle.setPosition(this->getContext().target.getView().getCenter() -
-                     sf::Vector2f(CIRCLE_SIZE, CIRCLE_SIZE));
-
+  sf::Vector2f startPos = this->getContext().target.getView().getCenter() -
+                          sf::Vector2f(CIRCLE_SIZE, CIRCLE_SIZE);
+  circle.setPosition(startPos);
   circle.setFillColor(sf::Color::Magenta);
+
+  this->entityManager.addEntity("Test");
+  this->player = this->entityManager.addEntity("Player");
+  this->player->getComponent<CTransform>().position = startPos;
 
   initializeKeymap();
 }
 
 void GameState::update(const sf::Time& deltaTime) {
-  sf::Vector2f movement(0.f, 0.f);
+  if (!this->player->hasComponent<CTransform>()) return;
+
+  auto& transform = this->player->getComponent<CTransform>();
+  transform.velocity = {0.f, 0.f};
 
   if (keymapPressed[sf::Keyboard::Scancode::W]) {
-    movement.y -= 1.f;
+    transform.velocity.y -= 1.f;
   }
   if (keymapPressed[sf::Keyboard::Scancode::A]) {
-    movement.x -= 1.f;
+    transform.velocity.x -= 1.f;
   }
   if (keymapPressed[sf::Keyboard::Scancode::S]) {
-    movement.y += 1.f;
+    transform.velocity.y += 1.f;
   }
   if (keymapPressed[sf::Keyboard::Scancode::D]) {
-    movement.x += 1.f;
+    transform.velocity.x += 1.f;
   }
 
-  if (movement.length() <= 0.f) return;
+  if (transform.velocity.length() <= 0.f) return;
 
-  movement = movement.normalized();
+  transform.velocity =
+      transform.velocity.normalized() * circleSpeed * deltaTime.asSeconds();
+  transform.position += transform.velocity;
 
-  circle.move(movement * circleSpeed * deltaTime.asSeconds());
+  // TODO: Change circle shape to be integrated as a component of each entities
+  circle.setPosition(transform.position);
 }
 
 void GameState::render() {

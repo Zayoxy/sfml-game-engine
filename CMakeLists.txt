@@ -16,6 +16,10 @@ add_executable(main src/main.cpp
                     src/core/GameEngine.h src/core/GameEngine.cpp
                     src/core/State.h src/core/State.cpp
                     src/states/GameState.h src/states/GameState.cpp
+                    src/core/components/Component.h
+                    src/core/components/CTransform.h
+                    src/core/entities/Entity.h src/core/entities/Entity.cpp
+                    src/core/entities/EntityManager.h src/core/entities/EntityManager.cpp
 )
 
 target_compile_features(main PRIVATE cxx_std_17)

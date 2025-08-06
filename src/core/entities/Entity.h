@@ -5,6 +5,7 @@
 #include <variant>
 
 #include "../../utils.h"
+#include "../components/CAnimation.h"
 #include "../components/CTransform.h"
 
 class EntityManager;
@@ -18,7 +19,7 @@ class Entity {
   size_t id;
   std::string tag;
 
-  std::tuple<CTransform> components;
+  std::tuple<CTransform, CAnimation> components;
 
   Entity(size_t id, const std::string& tag);
 

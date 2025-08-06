@@ -2,28 +2,42 @@
 
 #include <iostream>
 
+#include "../core/animations/CircleShapeAnimation.h"
+
 const float GameState::CIRCLE_SIZE = 50.f;
 
 GameState::GameState(Context context)
     : State(context),
-      circle(CIRCLE_SIZE),
-      circleSpeed(300.f),
+      playerSpeed(300.f),
       keymapPressed(),
-      entityManager() {
-  // Middle of the window
-  sf::Vector2f startPos = this->getContext().target.getView().getCenter() -
-                          sf::Vector2f(CIRCLE_SIZE, CIRCLE_SIZE);
-  circle.setPosition(startPos);
-  circle.setFillColor(sf::Color::Magenta);
-
+      entityManager(),
+      textureBackground("assets/background.png"),
+      spriteBackground(textureBackground) {
   this->entityManager.addEntity("Test");
   this->player = this->entityManager.addEntity("Player");
-  this->player->getComponent<CTransform>().position = startPos;
+
+  // Middle of the window
+  sf::Vector2f startPos = this->getContext().target.getView().getCenter() /*-
+                          sf::Vector2f(CIRCLE_SIZE, CIRCLE_SIZE)*/
+      ;
+
+  auto& transform = this->player->getComponent<CTransform>();
+  transform.position = startPos;
+  auto& canim = this->player->getComponent<CAnimation>();
+  canim.setAnimation(new CircleShapeAnimation(transform, CIRCLE_SIZE, 8,
+                                              sf::Color::Transparent,
+                                              sf::Color::Red, 2.f, 3.f));
 
   initializeKeymap();
 }
 
 void GameState::update(const sf::Time& deltaTime) {
+  // Update player animation
+  auto& canim = this->player->getComponent<CAnimation>();
+  if (!canim.getAnimation()) return;
+  canim.getAnimation()->update(deltaTime);
+
+  // Movement system
   if (!this->player->hasComponent<CTransform>()) return;
 
   auto& transform = this->player->getComponent<CTransform>();
@@ -45,17 +59,20 @@ void GameState::update(const sf::Time& deltaTime) {
   if (transform.velocity.length() <= 0.f) return;
 
   transform.velocity =
-      transform.velocity.normalized() * circleSpeed * deltaTime.asSeconds();
+      transform.velocity.normalized() * playerSpeed * deltaTime.asSeconds();
   transform.position += transform.velocity;
-
-  // TODO: Change circle shape to be integrated as a component of each entities
-  circle.setPosition(transform.position);
 }
 
 void GameState::render() {
   Context& context = this->getContext();
 
-  context.target.draw(circle);
+  // Background
+  context.target.draw(this->spriteBackground);
+
+  auto& canim = this->player->getComponent<CAnimation>();
+  if (!canim.getAnimation()) return;
+
+  canim.getAnimation()->draw(context.target);
 }
 
 void GameState::handleInput(const sf::Event& event) {

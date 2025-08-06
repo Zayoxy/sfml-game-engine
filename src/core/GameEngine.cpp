@@ -5,8 +5,13 @@
 const sf::Time GameEngine::PHYSICS_UPDATE_RATE = sf::seconds(1.f / 60.f);
 
 GameEngine::GameEngine()
-    : window(sf::VideoMode({800, 640}), "SFML Game"), currentState(nullptr) {
+    : window(sf::VideoMode({1280, 720}), "SFML Game"), currentState(nullptr) {
   window.setKeyRepeatEnabled(false);
+
+  // Optimization (will see if something depends on framerate as it will go too
+  // fast)
+  // window.setVerticalSyncEnabled(true);
+
   this->changeState(new GameState({*this, this->window}));
 }
 

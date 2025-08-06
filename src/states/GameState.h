@@ -1,6 +1,8 @@
 #pragma once
 
 #include <SFML/Graphics/CircleShape.hpp>
+#include <SFML/Graphics/Sprite.hpp>
+#include <SFML/Graphics/Texture.hpp>
 #include <map>
 
 #include "../core/State.h"
@@ -10,8 +12,11 @@ class GameState : public State {
  private:
   EntityManager entityManager;
   Entity* player;
-  sf::CircleShape circle;
-  float circleSpeed;
+
+  sf::Texture textureBackground;
+  sf::Sprite spriteBackground;
+
+  float playerSpeed;
   std::map<sf::Keyboard::Scancode, bool> keymapPressed;
 
  public:

@@ -9,57 +9,28 @@ const float GameState::CIRCLE_SIZE = 50.f;
 GameState::GameState(Context context)
     : State(context),
       playerSpeed(300.f),
-      keymapPressed(),
+      keyAction(),
       entityManager(),
       textureBackground("assets/background.png"),
       spriteBackground(textureBackground) {
-  // this->entityManager.addEntity("Test");
-  this->player = this->entityManager.addEntity("Player");
-
-  // Middle of the window
-  sf::Vector2f startPos = this->getContext().target.getView().getCenter() /*-
-                          sf::Vector2f(CIRCLE_SIZE, CIRCLE_SIZE)*/
-      ;
-
-  auto& transform = this->player->getComponent<CTransform>();
-  transform.position = startPos;
-  auto& canim = this->player->getComponent<CAnimation>();
-  canim.setAnimation(new CircleShapeAnimation(transform, CIRCLE_SIZE, 8,
-                                              sf::Color::Transparent,
-                                              sf::Color::Red, 2.f, 3.f));
-
   initializeKeymap();
+  spawnPlayer();
+  spawnEnemies();
 }
 
 void GameState::update(const sf::Time& deltaTime) {
+  auto& actionQueue = this->getContext().actionQueue;
+
+  // Process ALL actions in the queue before rendering
+  while (!actionQueue.empty()) {
+    actionQueue.front().execute(*this->player, deltaTime);
+    actionQueue.pop();
+  }
+
   for (auto& entity : this->entityManager.getEntities()) {
     sAnimation(entity, deltaTime);
+    sMovement(entity, deltaTime);
   }
-
-  // Movement system
-  if (!this->player->hasComponent<CTransform>()) return;
-
-  auto& transform = this->player->getComponent<CTransform>();
-  transform.velocity = {0.f, 0.f};
-
-  if (keymapPressed[sf::Keyboard::Scancode::W]) {
-    transform.velocity.y -= 1.f;
-  }
-  if (keymapPressed[sf::Keyboard::Scancode::A]) {
-    transform.velocity.x -= 1.f;
-  }
-  if (keymapPressed[sf::Keyboard::Scancode::S]) {
-    transform.velocity.y += 1.f;
-  }
-  if (keymapPressed[sf::Keyboard::Scancode::D]) {
-    transform.velocity.x += 1.f;
-  }
-
-  if (transform.velocity.length() <= 0.f) return;
-
-  transform.velocity =
-      transform.velocity.normalized() * playerSpeed * deltaTime.asSeconds();
-  transform.position += transform.velocity;
 }
 
 void GameState::render() {
@@ -68,21 +39,22 @@ void GameState::render() {
   // Background
   context.target.draw(this->spriteBackground);
 
-  assert(this->player->hasComponent<CTransform>());
-  auto& canim = this->player->getComponent<CAnimation>();
-  assert(canim.getAnimation() != nullptr);
+  for (auto* entity : this->entityManager.getEntities()) {
+    assert(entity->hasComponent<CTransform>());
+    auto& canim = entity->getComponent<CAnimation>();
+    assert(canim.getAnimation() != nullptr);
 
-  canim.getAnimation()->draw(context.target);
+    canim.getAnimation()->draw(context.target);
+  }
 }
 
-void GameState::handleInput(const sf::Event& event) {
-  // Handle key pressed events
-  if (const auto& keyPressedEvent = event.getIf<sf::Event::KeyPressed>()) {
-    handlePlayerInput(keyPressedEvent->scancode, true);
-  }
+void GameState::handleInput(const sf::Event& event) {}
 
-  if (const auto& keyReleasedEvent = event.getIf<sf::Event::KeyReleased>()) {
-    handlePlayerInput(keyReleasedEvent->scancode, false);
+void GameState::handleRealtimeInput(const sf::Time& deltaTime) {
+  for (auto& [key, action] : keyAction) {
+    if (sf::Keyboard::isKeyPressed(key)) {
+      this->getContext().actionQueue.push(action);
+    }
   }
 }
 
@@ -95,24 +67,66 @@ void GameState::sAnimation(Entity* e, const sf::Time& dt) {
   canim.getAnimation()->update(dt);
 }
 
-void GameState::initializeKeymap() {
-  keymapPressed[sf::Keyboard::Scancode::W] = false;
-  keymapPressed[sf::Keyboard::Scancode::A] = false;
-  keymapPressed[sf::Keyboard::Scancode::S] = false;
-  keymapPressed[sf::Keyboard::Scancode::D] = false;
+void GameState::sMovement(Entity* e, const sf::Time& dt) {
+  if (!e->hasComponent<CTransform>()) return;
+
+  auto& transform = e->getComponent<CTransform>();
+
+  if (transform.velocity.length() <= 0.f) return;
+
+  transform.velocity = transform.velocity.normalized() * playerSpeed;
+  transform.position += transform.velocity * dt.asSeconds();
+
+  // Reset velocity only if entity is the player
+  if (e == this->player) {
+    transform.velocity = {0.f, 0.f};
+  }
 }
 
-void GameState::handlePlayerInput(sf::Keyboard::Scancode key, bool pressed) {
-  if (key == sf::Keyboard::Scancode::W) {
-    keymapPressed[sf::Keyboard::Scancode::W] = pressed;
-  }
-  if (key == sf::Keyboard::Scancode::A) {
-    keymapPressed[sf::Keyboard::Scancode::A] = pressed;
-  }
-  if (key == sf::Keyboard::Scancode::S) {
-    keymapPressed[sf::Keyboard::Scancode::S] = pressed;
-  }
-  if (key == sf::Keyboard::Scancode::D) {
-    keymapPressed[sf::Keyboard::Scancode::D] = pressed;
-  }
+void GameState::initializeKeymap() {
+  struct PlayerMovement {
+    sf::Vector2f velocity;
+
+    PlayerMovement(float vx, float vy) : velocity(vx, vy) {}
+
+    void operator()(Entity& entity, const sf::Time& dt) {
+      assert(entity.hasComponent<CTransform>());
+      auto& transform = entity.getComponent<CTransform>();
+      transform.velocity += velocity.normalized() * velocity.length();
+    }
+  };
+
+  keyAction[sf::Keyboard::Scancode::W] =
+      Action(PlayerMovement(0.f, -playerSpeed));
+  keyAction[sf::Keyboard::Scancode::A] =
+      Action(PlayerMovement(-playerSpeed, 0.f));
+  keyAction[sf::Keyboard::Scancode::S] =
+      Action(PlayerMovement(0.f, playerSpeed));
+  keyAction[sf::Keyboard::Scancode::D] =
+      Action(PlayerMovement(playerSpeed, 0.f));
+}
+
+void GameState::spawnPlayer() {
+  this->player = this->entityManager.addEntity("Player");
+
+  // Middle of the window
+  sf::Vector2f startPos = this->getContext().target.getView().getCenter();
+
+  auto& transform = this->player->getComponent<CTransform>();
+  transform.position = startPos;
+  auto& canim = this->player->getComponent<CAnimation>();
+  canim.setAnimation(new CircleShapeAnimation(transform, CIRCLE_SIZE, 8,
+                                              sf::Color::Transparent,
+                                              sf::Color::Red, 2.f, 3.f));
+}
+
+void GameState::spawnEnemies() {
+  // TODO: Implement enemy spawning logic just testing for now
+  auto* entityTest = this->entityManager.addEntity("Test");
+
+  entityTest->getComponent<CAnimation>().setAnimation(new CircleShapeAnimation(
+      entityTest->getComponent<CTransform>(), CIRCLE_SIZE, 3,
+      sf::Color::Transparent, sf::Color::Green, 2.f, 5.f));
+  entityTest->getComponent<CTransform>().scale = {2.f, 2.f};
+  entityTest->getComponent<CTransform>().velocity = {3.f, 1.f};
 }

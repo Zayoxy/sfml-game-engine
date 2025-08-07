@@ -12,7 +12,7 @@ GameEngine::GameEngine()
   // fast)
   // window.setVerticalSyncEnabled(true);
 
-  this->changeState(new GameState({*this, this->window}));
+  this->changeState(new GameState({*this, this->window, this->actionQueue}));
 }
 
 GameEngine::~GameEngine() {
@@ -60,6 +60,7 @@ void GameEngine::processEvents() {
 }
 
 void GameEngine::update(const sf::Time& deltaTime) {
+  currentState->handleRealtimeInput(deltaTime);
   currentState->update(deltaTime);
 }
 

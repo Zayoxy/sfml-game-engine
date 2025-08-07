@@ -1,13 +1,16 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include <queue>
 
+#include "Action.h"
 #include "State.h"
 
 class GameEngine {
  private:
   sf::RenderWindow window;
   State* currentState;
+  std::queue<Action> actionQueue;
 
  public:
   static const uint16_t FRAMERATE_LIMIT;
@@ -28,8 +31,4 @@ class GameEngine {
   void update(const sf::Time& deltaTime);
 
   void render();
-
-  void initializeKeymap();
-
-  void handlePlayerInput(sf::Keyboard::Scancode key, bool pressed);
 };

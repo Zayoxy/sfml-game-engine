@@ -15,6 +15,7 @@ FetchContent_MakeAvailable(SFML)
 add_executable(${PROJECT_NAME} src/main.cpp
                     src/core/GameEngine.h src/core/GameEngine.cpp
                     src/core/State.h src/core/State.cpp
+                    src/core/Action.h src/core/Action.cpp
                     src/core/animations/Animation.h src/core/animations/Animation.cpp
                     src/core/animations/CircleShapeAnimation.h src/core/animations/CircleShapeAnimation.cpp
                     src/core/components/Component.h

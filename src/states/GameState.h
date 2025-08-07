@@ -5,6 +5,7 @@
 #include <SFML/Graphics/Texture.hpp>
 #include <map>
 
+#include "../core/Action.h"
 #include "../core/State.h"
 #include "../core/entities/EntityManager.h"
 
@@ -17,7 +18,9 @@ class GameState : public State {
   sf::Sprite spriteBackground;
 
   float playerSpeed;
-  std::map<sf::Keyboard::Scancode, bool> keymapPressed;
+  // TODO: Move keyAction, binding register in State mother class for more
+  // flexibility
+  std::map<sf::Keyboard::Scancode, Action> keyAction;
 
  public:
   static const float CIRCLE_SIZE;
@@ -30,9 +33,15 @@ class GameState : public State {
 
   void handleInput(const sf::Event& event) override;
 
+  void handleRealtimeInput(const sf::Time& deltaTime) override;
+
   void sAnimation(Entity* e, const sf::Time& dt);
+
+  void sMovement(Entity* e, const sf::Time& dt);
 
   void initializeKeymap();
 
-  void handlePlayerInput(sf::Keyboard::Scancode key, bool pressed);
+  void spawnPlayer();
+
+  void spawnEnemies();
 };

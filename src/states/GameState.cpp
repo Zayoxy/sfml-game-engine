@@ -13,7 +13,7 @@ GameState::GameState(Context context)
       entityManager(),
       textureBackground("assets/background.png"),
       spriteBackground(textureBackground) {
-  this->entityManager.addEntity("Test");
+  // this->entityManager.addEntity("Test");
   this->player = this->entityManager.addEntity("Player");
 
   // Middle of the window
@@ -32,10 +32,9 @@ GameState::GameState(Context context)
 }
 
 void GameState::update(const sf::Time& deltaTime) {
-  // Update player animation
-  auto& canim = this->player->getComponent<CAnimation>();
-  if (!canim.getAnimation()) return;
-  canim.getAnimation()->update(deltaTime);
+  for (auto& entity : this->entityManager.getEntities()) {
+    sAnimation(entity, deltaTime);
+  }
 
   // Movement system
   if (!this->player->hasComponent<CTransform>()) return;
@@ -69,8 +68,9 @@ void GameState::render() {
   // Background
   context.target.draw(this->spriteBackground);
 
+  assert(this->player->hasComponent<CTransform>());
   auto& canim = this->player->getComponent<CAnimation>();
-  if (!canim.getAnimation()) return;
+  assert(canim.getAnimation() != nullptr);
 
   canim.getAnimation()->draw(context.target);
 }
@@ -84,6 +84,15 @@ void GameState::handleInput(const sf::Event& event) {
   if (const auto& keyReleasedEvent = event.getIf<sf::Event::KeyReleased>()) {
     handlePlayerInput(keyReleasedEvent->scancode, false);
   }
+}
+
+void GameState::sAnimation(Entity* e, const sf::Time& dt) {
+  assert(e->hasComponent<CTransform>());
+
+  auto& canim = e->getComponent<CAnimation>();
+  assert(canim.getAnimation() != nullptr);
+
+  canim.getAnimation()->update(dt);
 }
 
 void GameState::initializeKeymap() {

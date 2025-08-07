@@ -30,6 +30,8 @@ class GameState : public State {
 
   void handleInput(const sf::Event& event) override;
 
+  void sAnimation(Entity* e, const sf::Time& dt);
+
   void initializeKeymap();
 
   void handlePlayerInput(sf::Keyboard::Scancode key, bool pressed);

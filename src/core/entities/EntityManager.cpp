@@ -5,8 +5,9 @@
 
 const size_t EntityManager::DEFAULT_ENTITIES_VEC_SIZE = 100;
 
-EntityManager::EntityManager()
-    : nextID(0), entities(DEFAULT_ENTITIES_VEC_SIZE) {}
+EntityManager::EntityManager() : nextID(0), entities() {
+  this->entities.reserve(DEFAULT_ENTITIES_VEC_SIZE);
+}
 
 EntityManager::~EntityManager() { this->cleanupEntities(); }
 

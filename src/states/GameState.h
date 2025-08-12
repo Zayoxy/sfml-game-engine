@@ -3,7 +3,6 @@
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Texture.hpp>
-#include <map>
 
 #include "../core/Action.h"
 #include "../core/State.h"
@@ -18,9 +17,6 @@ class GameState : public State {
   sf::Sprite spriteBackground;
 
   float playerSpeed;
-  // TODO: Move keyAction, binding register in State mother class for more
-  // flexibility
-  std::map<sf::Keyboard::Scancode, Action> keyAction;
 
  public:
   static const float CIRCLE_SIZE;

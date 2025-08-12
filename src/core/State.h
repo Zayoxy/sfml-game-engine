@@ -4,6 +4,7 @@
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/System/Time.hpp>
 #include <SFML/Window/Event.hpp>
+#include <map>
 #include <queue>
 
 #include "Action.h"
@@ -19,8 +20,11 @@ class State {
     std::queue<Action>& actionQueue;
   };
 
+  using KeyMap = std::map<sf::Keyboard::Scancode, Action>;
+
  private:
   Context context;
+  KeyMap keyAction;
 
  public:
   State(Context context);
@@ -42,6 +46,13 @@ class State {
   /// @brief Handle real-time input events (i.e. key held down, mouse moved)
   /// @param deltaTime Time since last update
   virtual void handleRealtimeInput(const sf::Time& deltaTime) {}
+
+  /// @brief Add key-action mapping
+  /// @param key Keyboard key
+  /// @param action Action to be executed
+  void registerKeyAction(sf::Keyboard::Scancode key, Action action);
+
+  KeyMap& getKeyMap() const;
 
   Context& getContext() const;
 };

@@ -9,7 +9,6 @@ const float GameState::CIRCLE_SIZE = 50.f;
 GameState::GameState(Context context)
     : State(context),
       playerSpeed(300.f),
-      keyAction(),
       entityManager(),
       textureBackground("assets/background.png"),
       spriteBackground(textureBackground) {
@@ -51,7 +50,7 @@ void GameState::render() {
 void GameState::handleInput(const sf::Event& event) {}
 
 void GameState::handleRealtimeInput(const sf::Time& deltaTime) {
-  for (auto& [key, action] : keyAction) {
+  for (const auto& [key, action] : getKeyMap()) {
     if (sf::Keyboard::isKeyPressed(key)) {
       this->getContext().actionQueue.push(action);
     }
@@ -96,14 +95,14 @@ void GameState::initializeKeymap() {
     }
   };
 
-  keyAction[sf::Keyboard::Scancode::W] =
-      Action(PlayerMovement(0.f, -playerSpeed));
-  keyAction[sf::Keyboard::Scancode::A] =
-      Action(PlayerMovement(-playerSpeed, 0.f));
-  keyAction[sf::Keyboard::Scancode::S] =
-      Action(PlayerMovement(0.f, playerSpeed));
-  keyAction[sf::Keyboard::Scancode::D] =
-      Action(PlayerMovement(playerSpeed, 0.f));
+  registerKeyAction(sf::Keyboard::Scancode::W,
+                    Action(PlayerMovement(0.f, -playerSpeed)));
+  registerKeyAction(sf::Keyboard::Scancode::A,
+                    Action(PlayerMovement(-playerSpeed, 0.f)));
+  registerKeyAction(sf::Keyboard::Scancode::S,
+                    Action(PlayerMovement(0.f, playerSpeed)));
+  registerKeyAction(sf::Keyboard::Scancode::D,
+                    Action(PlayerMovement(playerSpeed, 0.f)));
 }
 
 void GameState::spawnPlayer() {
